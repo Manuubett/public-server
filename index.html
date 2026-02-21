@@ -171,6 +171,145 @@ select option:disabled{
     color:#7f8fa4;
     background:#f2f6fc;
 }
+
+/* Modal styles - professional replacement for alerts */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 0;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9eef3;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-header.warning {
+    background: #fff8e7;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-header.success {
+    background: #e8f7ef;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-header i {
+    font-size: 24px;
+}
+
+.modal-header.warning i {
+    color: #b85e00;
+}
+
+.modal-header.success i {
+    color: #0e8044;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modal-body {
+    padding: 24px;
+    font-size: 1rem;
+    color: #2d3a4f;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.modal-btn-primary {
+    background: #0f3b6a;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background: #1a4f89;
+}
+
+.modal-btn-secondary {
+    background: #f1f5f9;
+    color: #2d3a4f;
+}
+
+.modal-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.modal-icon.warning {
+    background: #ffedd5;
+    color: #b85e00;
+}
+
+.modal-icon.success {
+    background: #dcfce7;
+    color: #0e8044;
+}
 </style>
 </head>
 <body>
@@ -230,6 +369,22 @@ select option:disabled{
 
   <div id="candidates"></div>
   <button id="submitBtn" disabled>⬆️ Submit results for this station</button>
+</div>
+
+<!-- Professional Modal Dialog (replaces alert) -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-content">
+    <div id="modalHeader" class="modal-header warning">
+      <div id="modalIcon" class="modal-icon warning">⚠️</div>
+      <h3 id="modalTitle">System Notification</h3>
+    </div>
+    <div class="modal-body">
+      <p id="modalMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="modalConfirmBtn" class="modal-btn modal-btn-primary">OK</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -301,6 +456,38 @@ const castedVotesInput = document.getElementById("castedVotes");
 const rejectedVotesInput = document.getElementById("rejectedVotes");
 const submitBtn = document.getElementById("submitBtn");
 const candidateDiv = document.getElementById("candidates");
+
+// Modal elements
+const modalOverlay = document.getElementById('modalOverlay');
+const modalHeader = document.getElementById('modalHeader');
+const modalIcon = document.getElementById('modalIcon');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
+const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
+// Professional modal function (replaces alert)
+function showModal(message, type = 'warning') {
+  modalHeader.className = `modal-header ${type}`;
+  modalIcon.className = `modal-icon ${type}`;
+  
+  if (type === 'warning') {
+    modalIcon.innerHTML = '⚠️';
+    modalTitle.textContent = 'System Notification';
+  } else {
+    modalIcon.innerHTML = '✅';
+    modalTitle.textContent = 'Success';
+  }
+  
+  modalMessage.textContent = message;
+  modalOverlay.classList.add('active');
+  
+  return new Promise((resolve) => {
+    modalConfirmBtn.onclick = () => {
+      modalOverlay.classList.remove('active');
+      resolve();
+    };
+  });
+}
 
 /* ===== load stations into dropdown ===== */
 async function loadStations() {
@@ -380,7 +567,7 @@ submitBtn.addEventListener("click", async () => {
   // double-check firestore
   const check = await getDoc(doc(db, "pollingStations", stationId));
   if (check.exists()) {
-    alert("⛔ Results for this station already submitted.");
+    await showModal(`⛔ Results for ${stationObj.name} have already been submitted to the system.`, 'warning');
     // disable visually
     stationSelect.options[stationSelect.selectedIndex].disabled = true;
     submitBtn.disabled = true;
@@ -418,11 +605,13 @@ submitBtn.addEventListener("click", async () => {
 
   await setDoc(doc(db, "pollingStations", stationId), payload);
 
-  // success message
+  // success message in UI
   const msgDiv = document.getElementById("message");
   msgDiv.innerHTML = `<div class="success">✅ Results for <strong>${stationObj.name}</strong> saved successfully (ward total 9,849)</div>`;
   msgDiv.scrollIntoView({ behavior: 'smooth' });
-  alert(`Results for ${stationObj.name} submitted!`);
+  
+  // Professional modal for success
+  await showModal(`Results for ${stationObj.name} have been successfully submitted to the system.`, 'success');
 
   // disable that station option
   stationSelect.options[stationSelect.selectedIndex].disabled = true;
@@ -440,14 +629,13 @@ submitBtn.addEventListener("click", async () => {
     document.getElementById(`diff_${c.id}`).textContent = "0";
     document.getElementById(`diff_${c.id}`).className = "diff";
   });
+});
 
-  // do NOT reset station selection – but user can pick another enabled station
-  // but we must update registered voters if they pick new.
-  // the select still has correct index; we keep event.
-  // but registered voters field: currently holds previous station's voters – 
-  // force re-evaluation: set to new station voters via trigger change?
-  // if same station selected (disabled), but it's disabled, they have to pick another.
-  // We'll reset registered when they pick another by change event.
+// Close modal when clicking overlay (optional)
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) {
+    modalOverlay.classList.remove('active');
+  }
 });
 </script>
 <!-- additional note: shows full 26 stations with voter numbers -->
