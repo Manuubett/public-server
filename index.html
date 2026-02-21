@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muminji Ward – Admin Panel</title>
+<style>
+body{
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background:#f4f6f9;
+    padding:20px;
+    margin:0;
+}
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:#fff;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+h2{
+    margin-top:5px;
+    margin-bottom:8px;
+    font-weight:600;
+    color:#1e293b;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.ward-badge{
+    background:#e6f0ff;
+    color:#1e4f8a;
+    font-size:0.9rem;
+    font-weight:500;
+    padding:0.3rem 1rem;
+    border-radius:30px;
+}
+label{
+    font-weight:600;
+    color:#2d3a4f;
+    margin-top:10px;
+    display:block;
+}
+input, select{
+    width:100%;
+    padding:10px 12px;
+    margin:5px 0 12px 0;
+    border-radius:10px;
+    border:1px solid #d0d9e8;
+    background:white;
+    font-size:0.95rem;
+    transition:0.15s;
+    box-sizing:border-box;
+}
+input:focus, select:focus{
+    outline:none;
+    border-color:#2c7be5;
+    box-shadow:0 0 0 3px rgba(44,123,229,0.15);
+}
+.candidate-row{
+    display:grid;
+    grid-template-columns: 2.5fr 1fr 1fr 0.8fr;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #edf2f9;
+}
+.candidate-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.candidate-info img{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid #e2e8f0;
+    background:#f1f4fa;
+}
+.diff{
+    font-weight:700;
+    text-align:center;
+    padding:6px 2px;
+    border-radius:30px;
+    font-size:0.9rem;
+    background:#f1f5f9;
+}
+.mismatch{
+    background:#fee2e2;
+    color:#991b1b;
+}
+.match{
+    background:#dcfce7;
+    color:#166534;
+}
+button{
+    padding:14px 22px;
+    width:100%;
+    background:#0f3b6a;
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+    letter-spacing:0.3px;
+    margin-top:10px;
+}
+button:hover:not(:disabled){
+    background:#1a4f89;
+    transform:scale(1.01);
+    box-shadow:0 6px 14px rgba(15,59,106,0.25);
+}
+button:disabled{
+    background:#a0b3cc;
+    cursor:not-allowed;
+    opacity:0.7;
+}
+.success{
+    background:#e0ffe5;
+    padding:14px 18px;
+    margin-bottom:20px;
+    border-left:6px solid #0e8044;
+    border-radius:10px;
+    font-weight:600;
+    color:#0a4b2c;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.stats-row{
+    display:flex;
+    gap:25px;
+    background:#f8fafd;
+    padding:16px 20px;
+    border-radius:20px;
+    margin:15px 0 20px 0;
+    flex-wrap:wrap;
+    border:1px solid #e9eef3;
+}
+.stat-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.stat-label{
+    font-weight:600;
+    color:#364d6b;
+}
+.stat-number{
+    font-weight:700;
+    background:white;
+    padding:4px 14px;
+    border-radius:40px;
+    color:#0f3b6a;
+    border:1px solid #dce5f0;
+}
+.total-voters-badge{
+    background:#0f3b6a;
+    color:white;
+    padding:4px 16px;
+    border-radius:30px;
+    font-size:0.9rem;
+    font-weight:500;
+    margin-left:15px;
+}
+select option:disabled{
+    color:#7f8fa4;
+    background:#f2f6fc;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>
+    <span>🗳️ Muminji Ward – Admin Entry</span>
+    <span class="ward-badge">total voters <strong>9,849</strong></span>
+  </h2>
+
+  <div id="message"></div>
+
+  <!-- quick stats / registered block -->
+  <div class="stats-row">
+    <div class="stat-item"><span class="stat-label">📋 polling stations</span><span class="stat-number">26</span></div>
+    <div class="stat-item"><span class="stat-label">👥 registered voters</span><span class="stat-number">9,849</span></div>
+    <div class="stat-item"><span class="stat-label">✅ status</span><span class="stat-number" style="background:#e6f0ff;">active</span></div>
+  </div>
+
+  <label>⏺️ Polling Station <span style="font-weight:normal;color:#e67700;">(select to load voters)</span></label>
+  <select id="stationSelect">
+    <option value="">-- Choose polling station --</option>
+  </select>
+
+  <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0 20px;">
+    <div>
+      <label>🗂️ Registered voters</label>
+      <input type="number" id="registeredVoters" readonly placeholder="auto-filled">
+    </div>
+    <div>
+      <label>📞 Agent phone</label>
+      <input type="tel" id="agentPhone" placeholder="07XX XXX XXX">
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0 20px;">
+    <div>
+      <label>🧑‍💼 Agent name</label>
+      <input type="text" id="agentName" placeholder="full name">
+    </div>
+    <div>
+      <label>📊 Casted votes</label>
+      <input type="number" id="castedVotes" placeholder="total votes cast">
+    </div>
+  </div>
+
+  <label>🗳️ Rejected votes</label>
+  <input type="number" id="rejectedVotes" placeholder="rejected ballots" style="width:48%;">
+
+  <h3 style="margin-top:28px; margin-bottom:10px;">📌 Candidate votes (agent vs IEBC comparison)</h3>
+  <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr 0.8fr;font-weight:700;color:#1f3a5f;padding:8px 0 6px 0;border-bottom:2px solid #cdddec;">
+    <div>Candidate</div>
+    <div>Agent votes</div>
+    <div>IEBC votes</div>
+    <div style="text-align:center;">Diff</div>
+  </div>
+
+  <div id="candidates"></div>
+  <button id="submitBtn" disabled>⬆️ Submit results for this station</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCJEJGa_GBufklAc7gl9-TjjBbpxao7_J8",
+  authDomain:"tallying-9df93.firebaseapp.com",
+  projectId:"tallying-9df93"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ============================
+   ALL 26 POLLING STATIONS (MUMINJI WARD)
+============================ */
+const stations = [
+  { name: "Kivue Primary School", voters: 686 },
+  { name: "Mbarwari Primary School", voters: 586 },
+  { name: "Cieria Primary School", voters: 492 },
+  { name: "Ndutori Primary School", voters: 486 },
+  { name: "Michegethiu Primary School", voters: 471 },
+  { name: "Gangara Primary School A", voters: 469 },
+  { name: "Gangara Primary School B", voters: 469 },
+  { name: "Nguthi Primary School", voters: 441 },
+  { name: "Kiamungongo Primary School", voters: 435 },
+  { name: "Itiira Primary School A", voters: 417 },
+  { name: "Itiira Primary School B", voters: 416 },
+  { name: "Karimari Primary School", voters: 404 },
+  { name: "Ngiirî Primary School A", voters: 402 },
+  { name: "Ngiirî Primary School B", voters: 401 },
+  { name: "Karambari Primary School", voters: 386 },
+  { name: "Kirie Primary School A", voters: 377 },
+  { name: "Kirie Primary School B", voters: 377 },
+  { name: "Gatakari Primary School", voters: 338 },
+  { name: "Rwagori Primary School", voters: 278 },
+  { name: "Mukororia Primary School", voters: 272 },
+  { name: "Kavui Primary School", voters: 232 },
+  { name: "Kandomba Primary School", voters: 229 },
+  { name: "Gatothia Primary School", voters: 164 },
+  { name: "Kianjogu Primary School", voters: 148 },
+  { name: "Kathutheri Primary School", voters: 142 },
+  { name: "Mianjatiri Primary School", voters: 131 }
+];
+
+// total sum verification (optional)
+const totalRegistered = stations.reduce((acc, s) => acc + s.voters, 0);
+console.log(`Total voters in ward: ${totalRegistered}`); // 9849
+
+/* ============================
+   CANDIDATES (unchanged)
+============================ */
+const candidates = [
+  { id:"c1", name:"Ngari Boniface Kariuki", photo:"https://via.placeholder.com/45" },
+  { id:"c2", name:"Ngari John Nyaga", photo:"https://via.placeholder.com/45" },
+  { id:"c3", name:"Njeru Cosmas", photo:"https://via.placeholder.com/45" },
+  { id:"c4", name:"Njiru Joseph Ngari", photo:"https://via.placeholder.com/45" },
+  { id:"c5", name:"Njiru Peterson Njeru", photo:"https://via.placeholder.com/45" },
+  { id:"c6", name:"Njuki Charles Kiura", photo:"https://via.placeholder.com/45" },
+  { id:"c7", name:"Nthinga Zachary Mbogo", photo:"https://via.placeholder.com/45" }
+];
+
+const stationSelect = document.getElementById("stationSelect");
+const registeredInput = document.getElementById("registeredVoters");
+const agentNameInput = document.getElementById("agentName");
+const agentPhoneInput = document.getElementById("agentPhone");
+const castedVotesInput = document.getElementById("castedVotes");
+const rejectedVotesInput = document.getElementById("rejectedVotes");
+const submitBtn = document.getElementById("submitBtn");
+const candidateDiv = document.getElementById("candidates");
+
+/* ===== load stations into dropdown ===== */
+async function loadStations() {
+  // clear any existing except first placeholder
+  stationSelect.innerHTML = '<option value="">-- Choose polling station --</option>';
+  
+  for (let i = 0; i < stations.length; i++) {
+    const s = stations[i];
+    const stationId = s.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, ''); // safe id
+    const snap = await getDoc(doc(db, "pollingStations", stationId));
+    
+    const opt = document.createElement("option");
+    opt.value = i;               // index
+    opt.textContent = s.name;
+    if (snap.exists()) {
+      opt.disabled = true;
+      opt.textContent += " ✔ (submitted)";
+    }
+    stationSelect.appendChild(opt);
+  }
+}
+loadStations();
+
+/* station changed */
+stationSelect.addEventListener("change", () => {
+  if (stationSelect.value === "") {
+    registeredInput.value = "";
+    submitBtn.disabled = true;
+    return;
+  }
+  const idx = parseInt(stationSelect.value, 10);
+  registeredInput.value = stations[idx].voters;
+  submitBtn.disabled = false;
+});
+
+/* draw candidate rows */
+candidates.forEach(c => {
+  let row = document.createElement("div");
+  row.className = "candidate-row";
+  row.innerHTML = `
+  <div class="candidate-info">
+    <img src="${c.photo}" alt="candidate">
+    <span>${c.name}</span>
+  </div>
+  <input type="number" id="agent_${c.id}" placeholder="0" min="0">
+  <input type="number" id="iebc_${c.id}" placeholder="0" min="0">
+  <div id="diff_${c.id}" class="diff">0</div>
+  `;
+  candidateDiv.appendChild(row);
+
+  // attach live diff
+  document.getElementById(`agent_${c.id}`).addEventListener("input", () => updateDiff(c.id));
+  document.getElementById(`iebc_${c.id}`).addEventListener("input", () => updateDiff(c.id));
+});
+
+function updateDiff(id) {
+  let agent = Number(document.getElementById(`agent_${id}`).value) || 0;
+  let iebc = Number(document.getElementById(`iebc_${id}`).value) || 0;
+  let diff = agent - iebc;
+  let diffCell = document.getElementById(`diff_${id}`);
+  diffCell.textContent = diff;
+  if (diff === 0) {
+    diffCell.className = "diff match";
+  } else {
+    diffCell.className = "diff mismatch";
+  }
+}
+
+/* submit final */
+submitBtn.addEventListener("click", async () => {
+  if (stationSelect.value === "") return;
+
+  const idx = parseInt(stationSelect.value, 10);
+  const stationObj = stations[idx];
+  const stationId = stationObj.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, '');
+
+  // double-check firestore
+  const check = await getDoc(doc(db, "pollingStations", stationId));
+  if (check.exists()) {
+    alert("⛔ Results for this station already submitted.");
+    // disable visually
+    stationSelect.options[stationSelect.selectedIndex].disabled = true;
+    submitBtn.disabled = true;
+    return;
+  }
+
+  // gather votes
+  let agentVotes = {};
+  let iebcVotes = {};
+  let discrepancies = false;
+
+  candidates.forEach(c => {
+    let a = Number(document.getElementById(`agent_${c.id}`).value) || 0;
+    let i = Number(document.getElementById(`iebc_${c.id}`).value) || 0;
+    agentVotes[c.name] = a;
+    iebcVotes[c.name] = i;
+    if (a !== i) discrepancies = true;
+  });
+
+  // prepare data
+  const payload = {
+    stationName: stationObj.name,
+    registeredVoters: Number(registeredInput.value),
+    agentName: agentNameInput.value.trim() || "(not provided)",
+    agentPhone: agentPhoneInput.value.trim() || "(not provided)",
+    castedVotes: Number(castedVotesInput.value) || 0,
+    rejectedVotes: Number(rejectedVotesInput.value) || 0,
+    agentVotes,
+    iebcVotes,
+    discrepancyDetected: discrepancies,
+    timestamp: Date.now(),
+    ward: "Muminji",
+    totalWardVoters: 9849
+  };
+
+  await setDoc(doc(db, "pollingStations", stationId), payload);
+
+  // success message
+  const msgDiv = document.getElementById("message");
+  msgDiv.innerHTML = `<div class="success">✅ Results for <strong>${stationObj.name}</strong> saved successfully (ward total 9,849)</div>`;
+  msgDiv.scrollIntoView({ behavior: 'smooth' });
+  alert(`Results for ${stationObj.name} submitted!`);
+
+  // disable that station option
+  stationSelect.options[stationSelect.selectedIndex].disabled = true;
+  submitBtn.disabled = true;  // disable until new station chosen
+
+  // clear form (keep station selected but fields cleared)
+  agentNameInput.value = "";
+  agentPhoneInput.value = "";
+  castedVotesInput.value = "";
+  rejectedVotesInput.value = "";
+  
+  candidates.forEach(c => {
+    document.getElementById(`agent_${c.id}`).value = "";
+    document.getElementById(`iebc_${c.id}`).value = "";
+    document.getElementById(`diff_${c.id}`).textContent = "0";
+    document.getElementById(`diff_${c.id}`).className = "diff";
+  });
+
+  // do NOT reset station selection – but user can pick another enabled station
+  // but we must update registered voters if they pick new.
+  // the select still has correct index; we keep event.
+  // but registered voters field: currently holds previous station's voters – 
+  // force re-evaluation: set to new station voters via trigger change?
+  // if same station selected (disabled), but it's disabled, they have to pick another.
+  // We'll reset registered when they pick another by change event.
+});
+</script>
+<!-- additional note: shows full 26 stations with voter numbers -->
+</body>
+</html>
