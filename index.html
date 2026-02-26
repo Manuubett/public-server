@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ward Admin Panel – Muminji & Evurore</title>
+<style>
+/* [All your existing CSS remains exactly the same] */
+body{
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background:#f4f6f9;
+    padding:20px;
+    margin:0;
+}
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:#fff;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+h2{
+    margin-top:5px;
+    margin-bottom:8px;
+    font-weight:600;
+    color:#1e293b;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+}
+.ward-badge{
+    background:#e6f0ff;
+    color:#1e4f8a;
+    font-size:0.9rem;
+    font-weight:500;
+    padding:0.3rem 1rem;
+    border-radius:30px;
+}
+.ward-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.ward-btn {
+    padding: 12px 24px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 200px;
+}
+.ward-btn.active {
+    background: #0f3b6a;
+    border-color: #0f3b6a;
+    color: white;
+}
+.ward-btn:hover:not(.active) {
+    background: #f8fafd;
+    border-color: #a0b3cc;
+}
+.ward-stats {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+label{
+    font-weight:600;
+    color:#2d3a4f;
+    margin-top:10px;
+    display:block;
+}
+input, select{
+    width:100%;
+    padding:10px 12px;
+    margin:5px 0 12px 0;
+    border-radius:10px;
+    border:1px solid #d0d9e8;
+    background:white;
+    font-size:0.95rem;
+    transition:0.15s;
+    box-sizing:border-box;
+}
+input:focus, select:focus{
+    outline:none;
+    border-color:#2c7be5;
+    box-shadow:0 0 0 3px rgba(44,123,229,0.15);
+}
+.candidate-row{
+    display:grid;
+    grid-template-columns: 2.5fr 1fr 1fr 0.8fr;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #edf2f9;
+}
+.candidate-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.candidate-info img{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid #e2e8f0;
+    background:#f1f4fa;
+}
+.diff{
+    font-weight:700;
+    text-align:center;
+    padding:6px 2px;
+    border-radius:30px;
+    font-size:0.9rem;
+    background:#f1f5f9;
+}
+.mismatch{
+    background:#fee2e2;
+    color:#991b1b;
+}
+.match{
+    background:#dcfce7;
+    color:#166534;
+}
+button{
+    padding:14px 22px;
+    width:100%;
+    background:#0f3b6a;
+    color:white;
+    border:none;
+    border-radius:14px;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+    letter-spacing:0.3px;
+    margin-top:10px;
+}
+button:hover:not(:disabled){
+    background:#1a4f89;
+    transform:scale(1.01);
+    box-shadow:0 6px 14px rgba(15,59,106,0.25);
+}
+button:disabled{
+    background:#a0b3cc;
+    cursor:not-allowed;
+    opacity:0.7;
+}
+.success{
+    background:#e0ffe5;
+    padding:14px 18px;
+    margin-bottom:20px;
+    border-left:6px solid #0e8044;
+    border-radius:10px;
+    font-weight:600;
+    color:#0a4b2c;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.stats-row{
+    display:flex;
+    gap:25px;
+    background:#f8fafd;
+    padding:16px 20px;
+    border-radius:20px;
+    margin:15px 0 20px 0;
+    flex-wrap:wrap;
+    border:1px solid #e9eef3;
+}
+.stat-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.stat-label{
+    font-weight:600;
+    color:#364d6b;
+}
+.stat-number{
+    font-weight:700;
+    background:white;
+    padding:4px 14px;
+    border-radius:40px;
+    color:#0f3b6a;
+    border:1px solid #dce5f0;
+}
+.total-voters-badge{
+    background:#0f3b6a;
+    color:white;
+    padding:4px 16px;
+    border-radius:30px;
+    font-size:0.9rem;
+    font-weight:500;
+    margin-left:15px;
+}
+select option:disabled{
+    color:#7f8fa4;
+    background:#f2f6fc;
+}
+
+/* Login Modal Styles */
+.login-overlay {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-modal {
+    background: white;
+    border-radius: 24px;
+    padding: 0;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.3);
+    animation: loginSlideIn 0.4s ease;
+    overflow: hidden;
+}
+
+@keyframes loginSlideIn {
+    from {
+        transform: translateY(-50px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.login-header {
+    background: linear-gradient(135deg, #0f3b6a, #1a4f89);
+    padding: 30px 24px;
+    text-align: center;
+    color: white;
+}
+
+.login-header h2 {
+    margin: 10px 0 5px;
+    color: white;
+    font-size: 1.8rem;
+    justify-content: center;
+}
+
+.login-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.login-body {
+    padding: 30px 24px;
+}
+
+.login-input {
+    margin-bottom: 20px;
+}
+
+.login-input label {
+    display: block;
+    margin-bottom: 8px;
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.login-input input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.login-input input:focus {
+    border-color: #0f3b6a;
+    box-shadow: 0 0 0 3px rgba(15, 59, 106, 0.1);
+    outline: none;
+}
+
+.login-btn {
+    background: #0f3b6a;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    background: #1a4f89;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(15, 59, 106, 0.3);
+}
+
+.login-error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-error.show {
+    display: flex;
+}
+
+.admin-bar {
+    background: #0f3b6a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-badge {
+    background: #2d6a4f;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: auto;
+    margin: 0;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Modal styles - professional replacement for alerts */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 0;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9eef3;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-header.warning {
+    background: #fff8e7;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-header.success {
+    background: #e8f7ef;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-header i {
+    font-size: 24px;
+}
+
+.modal-header.warning i {
+    color: #b85e00;
+}
+
+.modal-header.success i {
+    color: #0e8044;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modal-body {
+    padding: 24px;
+    font-size: 1rem;
+    color: #2d3a4f;
+    line-height: 1.5;
+}
+
+.modal-footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.modal-btn-primary {
+    background: #0f3b6a;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background: #1a4f89;
+}
+
+.modal-btn-secondary {
+    background: #f1f5f9;
+    color: #2d3a4f;
+}
+
+.modal-btn-secondary:hover {
+    background: #e2e8f0;
+}
+
+.modal-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.modal-icon.warning {
+    background: #ffedd5;
+    color: #b85e00;
+}
+
+.modal-icon.success {
+    background: #dcfce7;
+    color: #0e8044;
+}
+</style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-modal">
+        <div class="login-header">
+            <div style="font-size: 3rem;">🔐</div>
+            <h2>Admin Login</h2>
+            <p>Ward Election System</p>
+        </div>
+        <div class="login-body">
+            <div id="loginError" class="login-error">
+                <span>⚠️</span>
+                <span id="loginErrorMessage">Invalid credentials</span>
+            </div>
+            <div class="login-input">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter admin username" autocomplete="off">
+            </div>
+            <div class="login-input">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" autocomplete="off">
+            </div>
+            <button class="login-btn" id="loginBtn">Access Admin Panel</button>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="mainContent" style="display: none;">
+    <!-- Admin Bar (shown when logged in) -->
+    <div class="admin-bar" id="adminBar">
+        <div class="admin-info">
+            <span>👤</span>
+            <span id="adminNameDisplay">Admin</span>
+            <span class="admin-badge">SECURE MODE</span>
+        </div>
+        <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+    </div>
+
+    <!-- Ward Selector -->
+    <div class="ward-selector">
+        <button class="ward-btn active" id="wardMuminjiBtn">🗳️ Muminji Ward (7 Candidates)</button>
+        <button class="ward-btn" id="wardEvuroreBtn">🗳️ Evurore Ward (5 Candidates)</button>
+    </div>
+
+    <h2>
+        <span id="wardTitle">🗳️ Muminji Ward – Admin Entry</span>
+        <span class="ward-badge" id="totalVotersBadge">total voters <strong id="totalVotersCount">9,849</strong></span>
+    </h2>
+
+    <div id="message"></div>
+
+    <!-- quick stats / registered block -->
+    <div class="stats-row">
+        <div class="stat-item"><span class="stat-label">📋 polling stations</span><span class="stat-number" id="stationCount">26</span></div>
+        <div class="stat-item"><span class="stat-label">👥 registered voters</span><span class="stat-number" id="totalVotersStat">9,849</span></div>
+        <div class="stat-item"><span class="stat-label">✅ status</span><span class="stat-number" style="background:#e6f0ff;">active</span></div>
+        <div class="stat-item"><span class="stat-label">👥 candidates</span><span class="stat-number" id="candidateCount">7</span></div>
+    </div>
+
+    <label>⏺️ Polling Station <span style="font-weight:normal;color:#e67700;">(select to load voters)</span></label>
+    <select id="stationSelect">
+        <option value="">-- Choose polling station --</option>
+    </select>
+
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0 20px;">
+        <div>
+            <label>🗂️ Registered voters</label>
+            <input type="number" id="registeredVoters" readonly placeholder="auto-filled">
+        </div>
+        <div>
+            <label>📞 Agent phone</label>
+            <input type="tel" id="agentPhone" placeholder="07XX XXX XXX">
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0 20px;">
+        <div>
+            <label>🧑‍💼 Agent name</label>
+            <input type="text" id="agentName" placeholder="full name">
+        </div>
+        <div>
+            <label>📊 Casted votes</label>
+            <input type="number" id="castedVotes" placeholder="total votes cast">
+        </div>
+    </div>
+
+    <!-- New Official Results Form Serial Number Field -->
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:0 20px;">
+        <div>
+            <label>📋 Official Results Form Serial No.</label>
+            <input type="text" id="formSerialNumber" placeholder="e.g., 35A / 34A">
+        </div>
+        <div>
+            <label>🗳️ Rejected votes</label>
+            <input type="number" id="rejectedVotes" placeholder="rejected ballots">
+        </div>
+    </div>
+
+    <h3 style="margin-top:28px; margin-bottom:10px;">📌 Candidate votes (agent vs IEBC comparison)</h3>
+    <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr 0.8fr;font-weight:700;color:#1f3a5f;padding:8px 0 6px 0;border-bottom:2px solid #cdddec;">
+        <div>Candidate (Party)</div>
+        <div>Agent votes</div>
+        <div>IEBC votes</div>
+        <div style="text-align:center;">Diff</div>
+    </div>
+
+    <div id="candidates"></div>
+    <button id="submitBtn" disabled>⬆️ Submit results for this station</button>
+</div>
+
+<!-- Professional Modal Dialog (replaces alert) -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <div id="modalHeader" class="modal-header warning">
+            <div id="modalIcon" class="modal-icon warning">⚠️</div>
+            <h3 id="modalTitle">System Notification</h3>
+        </div>
+        <div class="modal-body">
+            <p id="modalMessage"></p>
+        </div>
+        <div class="modal-footer">
+            <button id="modalConfirmBtn" class="modal-btn modal-btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp as initFirebase } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCJEJGa_GBufklAc7gl9-TjjBbpxao7_J8",
+    authDomain: "tallying-9df93.firebaseapp.com",
+    projectId: "tallying-9df93"
+};
+const app = initFirebase(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// DOM Elements
+const loginOverlay = document.getElementById('loginOverlay');
+const mainContent = document.getElementById('mainContent');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
+const loginErrorMessage = document.getElementById('loginErrorMessage');
+const logoutBtn = document.getElementById('logoutBtn');
+const adminNameDisplay = document.getElementById('adminNameDisplay');
+
+const wardTitle = document.getElementById('wardTitle');
+const totalVotersBadge = document.getElementById('totalVotersBadge');
+const totalVotersCount = document.getElementById('totalVotersCount');
+const stationCount = document.getElementById('stationCount');
+const totalVotersStat = document.getElementById('totalVotersStat');
+const candidateCount = document.getElementById('candidateCount');
+const wardMuminjiBtn = document.getElementById('wardMuminjiBtn');
+const wardEvuroreBtn = document.getElementById('wardEvuroreBtn');
+
+const stationSelect = document.getElementById("stationSelect");
+const registeredInput = document.getElementById("registeredVoters");
+const agentNameInput = document.getElementById("agentName");
+const agentPhoneInput = document.getElementById("agentPhone");
+const castedVotesInput = document.getElementById("castedVotes");
+const rejectedVotesInput = document.getElementById("rejectedVotes");
+const formSerialNumberInput = document.getElementById("formSerialNumber");
+const submitBtn = document.getElementById("submitBtn");
+const candidateDiv = document.getElementById("candidates");
+
+// Modal elements
+const modalOverlay = document.getElementById('modalOverlay');
+const modalHeader = document.getElementById('modalHeader');
+const modalIcon = document.getElementById('modalIcon');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
+const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
+/* ============================
+   WARD DATA
+============================ */
+
+// Muminji Ward Stations
+const muminjiStations = [
+    { name: "Kivue Primary School", voters: 686 },
+    { name: "Mbarwari Primary School", voters: 586 },
+    { name: "Cieria Primary School", voters: 492 },
+    { name: "Ndutori Primary School", voters: 486 },
+    { name: "Michegethiu Primary School", voters: 471 },
+    { name: "Gangara Primary School A", voters: 469 },
+    { name: "Gangara Primary School B", voters: 469 },
+    { name: "Nguthi Primary School", voters: 441 },
+    { name: "Kiamungongo Primary School", voters: 435 },
+    { name: "Itiira Primary School A", voters: 417 },
+    { name: "Itiira Primary School B", voters: 416 },
+    { name: "Karimari Primary School", voters: 404 },
+    { name: "Ngiirî Primary School A", voters: 402 },
+    { name: "Ngiirî Primary School B", voters: 401 },
+    { name: "Karambari Primary School", voters: 386 },
+    { name: "Kirie Primary School A", voters: 377 },
+    { name: "Kirie Primary School B", voters: 377 },
+    { name: "Gatakari Primary School", voters: 338 },
+    { name: "Rwagori Primary School", voters: 278 },
+    { name: "Mukororia Primary School", voters: 272 },
+    { name: "Kavui Primary School", voters: 232 },
+    { name: "Kandomba Primary School", voters: 229 },
+    { name: "Gatothia Primary School", voters: 164 },
+    { name: "Kianjogu Primary School", voters: 148 },
+    { name: "Kathutheri Primary School", voters: 142 },
+    { name: "Mianjatiri Primary School", voters: 131 }
+];
+
+// Evurore Ward Stations
+const evuroreStations = [
+    { name: "KANYUAMBORA PRIMARY SCHOOL (Stream 1)", voters: 589 },
+    { name: "KANYUAMBORA PRIMARY SCHOOL (Stream 2)", voters: 588 },
+    { name: "KANYUAMBORA PRIMARY SCHOOL (Stream 3)", voters: 588 },
+    { name: "KAVENGERO PRIMARY SCHOOL (Stream 1)", voters: 508 },
+    { name: "KAVENGERO PRIMARY SCHOOL (Stream 2)", voters: 508 },
+    { name: "IRIRI PRIMARY SCHOOL", voters: 454 },
+    { name: "GITIE PRIMARY SCHOOL", voters: 636 },
+    { name: "CIANTHIA PRIMARY SCHOOL", voters: 459 },
+    { name: "NGUNYUMU PRIMARY SCHOOL", voters: 607 },
+    { name: "KATHIGAGACERU PRIMARY SCHOOL", voters: 364 },
+    { name: "KATHAGUTARI PRIMARY SCHOOL (Stream 1)", voters: 381 },
+    { name: "KATHAGUTARI PRIMARY SCHOOL (Stream 2)", voters: 380 },
+    { name: "IBUTUKA PRIMARY SCHOOL", voters: 396 },
+    { name: "KUI PRIMARY SCHOOL", voters: 366 },
+    { name: "KARUARI PRIMARY SCHOOL (Stream 1)", voters: 417 },
+    { name: "KARUARI PRIMARY SCHOOL (Stream 2)", voters: 417 },
+    { name: "KIGWAMBITI PRIMARY SCHOOL", voters: 547 },
+    { name: "KIENIRE PRIMARY SCHOOL", voters: 646 },
+    { name: "KAMUKANYA PRIMARY SCHOOL", voters: 370 },
+    { name: "NTAMBARI PRIMARY SCHOOL", voters: 439 },
+    { name: "NGOCE PRIMARY SCHOOL", voters: 649 },
+    { name: "KIRIGO PRIMARY SCHOOL", voters: 423 },
+    { name: "NGARWERERI PRIMARY SCHOOL", voters: 323 },
+    { name: "MUTIRIAIGURU PRIMARY SCHOOL", voters: 325 },
+    { name: "KIANJERU PRIMARY SCHOOL", voters: 464 },
+    { name: "KARANGARE PRIMARY SCHOOL", voters: 552 },
+    { name: "CIANGERA PRIMARY SCHOOL (Stream 1)", voters: 443 },
+    { name: "CIANGERA PRIMARY SCHOOL (Stream 2)", voters: 442 },
+    { name: "NJARANGE PRIMARY SCHOOL", voters: 550 },
+    { name: "MBARAGA PRIMARY SCHOOL", voters: 417 },
+    { name: "MUTHANTHARA PRIMARY SCHOOL", voters: 530 },
+    { name: "KOGARI PRIMARY SCHOOL", voters: 523 },
+    { name: "KAMUTU PRIMARY SCHOOL", voters: 427 },
+    { name: "NTHIGIRANI PRIMARY SCHOOL", voters: 347 },
+    { name: "GATATHA PRIMARY SCHOOL", voters: 424 },
+    { name: "KIATHAMBU PRIMARY SCHOOL", voters: 392 },
+    { name: "KAMWAA PRIMARY SCHOOL", voters: 536 },
+    { name: "KIANTHENGE PRIMARY SCHOOL", voters: 462 },
+    { name: "GWAKAITHI PRIMARY SCHOOL (Stream 1)", voters: 386 },
+    { name: "GWAKAITHI PRIMARY SCHOOL (Stream 2)", voters: 385 },
+    { name: "RWANJERU PRIMARY SCHOOL", voters: 239 },
+    { name: "GATORORORI PRIMARY SCHOOL", voters: 343 },
+    { name: "OVARIRE PRIMARY SCHOOL", voters: 276 },
+    { name: "MANGOTE PRIMARY SCHOOL", voters: 260 },
+    { name: "ST. PETERS PRIMARY SCHOOL (Stream 1)", voters: 653 },
+    { name: "ST. PETERS PRIMARY SCHOOL (Stream 2)", voters: 652 },
+    { name: "ST. PETERS PRIMARY SCHOOL (Stream 3)", voters: 652 },
+    { name: "KANYUERI PRIMARY SCHOOL", voters: 315 },
+    { name: "ST. MARYS KANGANGA PRIMARY SCHOOL", voters: 408 },
+    { name: "ITURURI PRIMARY SCHOOL", voters: 370 },
+    { name: "USAMBARA PRIMARY SCHOOL", voters: 310 },
+    { name: "MUGWANJOGU PRIMARY SCHOOL", voters: 252 },
+    { name: "MBACI PRIMARY SCHOOL", voters: 259 },
+    { name: "KAMARINDO PRIMARY SCHOOL", voters: 284 },
+    { name: "KARIGIRI PRIMARY SCHOOL (Stream 1)", voters: 425 },
+    { name: "KARIGIRI PRIMARY SCHOOL (Stream 2)", voters: 425 },
+    { name: "ST. KIZITO KATHANGARI PR SCHOOL", voters: 628 },
+    { name: "MURANGU PRIMARY SCHOOL", voters: 125 },
+    { name: "CIAIKUNGUGU PRIMARY SCHOOL", voters: 127 },
+    { name: "KAMBUNGU PRIMARY SCHOOL", voters: 218 },
+    { name: "KAMIGUA PRIMARY SCHOOL", voters: 251 },
+    { name: "ST. MICHAEL GACURIRI PR SCHOOL", voters: 171 },
+    { name: "KANYANGI PRIMARY SCHOOL", voters: 23 },
+    { name: "KAMAUA PRIMARY SCHOOL", voters: 27 },
+    { name: "KATHERU PRIMARY SCHOOL", voters: 13 },
+    { name: "KIANJOYA PRIMARY SCHOOL", voters: 11 },
+    { name: "KAMARANDI SECONDARY SCHOOL", voters: 16 }
+];
+
+// Calculate total voters for Evurore
+const evuroreTotalVoters = evuroreStations.reduce((sum, station) => sum + station.voters, 0);
+
+/* ============================
+   CANDIDATES BY WARD
+============================ */
+
+// Muminji Ward Candidates (7 candidates)
+const muminjiCandidates = [
+    { id: "c1", name: "Ngari Boniface Kariuki", party: "", partyCode: "", photo: "boni.png" },
+    { id: "c2", name: "Ngari John Nyaga", party: "", partyCode: "", photo: "John.png" },
+    { id: "c3", name: "Njeru Cosmas", party: "", partyCode: "", photo: "cos.png" },
+    { id: "c4", name: "Njiru Joseph Ngari", party: "", partyCode: "", photo: "Joseph.png" },
+    { id: "c5", name: "Njiru Peterson Njeru", party: "", partyCode: "", photo: "Peter.png" },
+    { id: "c6", name: "Njuki Charles Kiura", party: "", partyCode: "", photo: "chali.png" },
+    { id: "c7", name: "Nthinga Zachary Mbogo", party: "", partyCode: "", photo: "zac.png" }
+];
+
+// Evurore Ward Candidates (5 candidates with party details)
+const evuroreCandidates = [
+    { 
+        id: "e1", 
+        name: "Catherine Mururi Kabuthi", 
+        party: "United Progressive Alliance", 
+        partyCode: "UPA",
+        photo: "https://via.placeholder.com/42?text=CK" 
+    },
+    { 
+        id: "e2", 
+        name: "Albert Muchira Kigoro", 
+        party: "Democratic Party", 
+        partyCode: "DP",
+        photo: "https://via.placeholder.com/42?text=AK" 
+    },
+    { 
+        id: "e3", 
+        name: "Johnson Mukui Mate", 
+        party: "Independent", 
+        partyCode: "IND",
+        photo: "https://via.placeholder.com/42?text=JM" 
+    },
+    { 
+        id: "e4", 
+        name: "Martin Mukundi Muriithi", 
+        party: "National Economic Development Party", 
+        partyCode: "NEDP",
+        photo: "https://via.placeholder.com/42?text=MM" 
+    },
+    { 
+        id: "e5", 
+        name: "Joseph Nyaga Njeru", 
+        party: "People's Liberation Party", 
+        partyCode: "PLP",
+        photo: "https://via.placeholder.com/42?text=JN" 
+    }
+];
+
+// Current state
+let currentWard = 'muminji'; // 'muminji' or 'evurore'
+let currentStations = muminjiStations;
+let currentCandidates = [...muminjiCandidates]; // Create a copy
+let currentTotalVoters = 9849; // Muminji total
+
+// Global functions
+let showModal;
+let loadStations;
+let renderCandidates;
+let clearForm;
+
+// Check authentication state
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // User is signed in
+        loginOverlay.style.display = 'none';
+        mainContent.style.display = 'block';
+        adminNameDisplay.textContent = user.email;
+        initializeAdminPanel();
+    } else {
+        // User is signed out
+        loginOverlay.style.display = 'flex';
+        mainContent.style.display = 'none';
+    }
+});
+
+// Login handler
+loginBtn.addEventListener('click', handleLogin);
+usernameInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+});
+passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleLogin();
+});
+
+async function handleLogin() {
+    const email = usernameInput.value.trim() + "@muminji.go.ke";
+    const password = passwordInput.value.trim();
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        loginError.classList.remove('show');
+    } catch (error) {
+        loginErrorMessage.textContent = 'Invalid username or password';
+        loginError.classList.add('show');
+        passwordInput.value = '';
+        passwordInput.focus();
+    }
+}
+
+// Logout handler
+logoutBtn.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+});
+
+// ===== WARD SWITCHING - THIS LOADS THE CORRECT CANDIDATES =====
+wardMuminjiBtn.addEventListener('click', () => {
+    if (currentWard === 'muminji') return;
+    
+    console.log('Switching to Muminji Ward');
+    
+    // Update current ward data
+    currentWard = 'muminji';
+    currentStations = muminjiStations;
+    currentCandidates = [...muminjiCandidates]; // Create a new copy
+    currentTotalVoters = 9849;
+    
+    // Update UI
+    wardMuminjiBtn.classList.add('active');
+    wardEvuroreBtn.classList.remove('active');
+    wardTitle.textContent = '🗳️ Muminji Ward – Admin Entry';
+    totalVotersCount.textContent = '9,849';
+    totalVotersStat.textContent = '9,849';
+    stationCount.textContent = '26';
+    candidateCount.textContent = '7';
+    
+    // Reload stations and candidates
+    if (typeof loadStations === 'function') loadStations();
+    if (typeof renderCandidates === 'function') renderCandidates();
+    if (typeof clearForm === 'function') clearForm();
+    
+    // Show notification
+    if (typeof showModal === 'function') {
+        showModal('Switched to Muminji Ward with 7 candidates', 'success');
+    }
+});
+
+wardEvuroreBtn.addEventListener('click', () => {
+    if (currentWard === 'evurore') return;
+    
+    console.log('Switching to Evurore Ward with 5 candidates');
+    
+    // Update current ward data
+    currentWard = 'evurore';
+    currentStations = evuroreStations;
+    currentCandidates = [...evuroreCandidates]; // Create a new copy
+    currentTotalVoters = evuroreTotalVoters;
+    
+    // Update UI
+    wardEvuroreBtn.classList.add('active');
+    wardMuminjiBtn.classList.remove('active');
+    wardTitle.textContent = '🗳️ Evurore Ward – Admin Entry';
+    totalVotersCount.textContent = currentTotalVoters.toLocaleString();
+    totalVotersStat.textContent = currentTotalVoters.toLocaleString();
+    stationCount.textContent = currentStations.length;
+    candidateCount.textContent = '5';
+    
+    // Reload stations and candidates
+    if (typeof loadStations === 'function') loadStations();
+    if (typeof renderCandidates === 'function') renderCandidates();
+    if (typeof clearForm === 'function') clearForm();
+    
+    // Show notification
+    if (typeof showModal === 'function') {
+        showModal('Switched to Evurore Ward with 5 candidates', 'success');
+    }
+});
+
+// Initialize the admin panel after login
+function initializeAdminPanel() {
+    console.log('Initializing admin panel');
+    
+    // Professional modal function
+    showModal = function(message, type = 'warning') {
+        modalHeader.className = `modal-header ${type}`;
+        modalIcon.className = `modal-icon ${type}`;
+        
+        if (type === 'warning') {
+            modalIcon.innerHTML = '⚠️';
+            modalTitle.textContent = 'System Notification';
+        } else {
+            modalIcon.innerHTML = '✅';
+            modalTitle.textContent = 'Success';
+        }
+        
+        modalMessage.textContent = message;
+        modalOverlay.classList.add('active');
+        
+        return new Promise((resolve) => {
+            modalConfirmBtn.onclick = () => {
+                modalOverlay.classList.remove('active');
+                resolve();
+            };
+        });
+    };
+
+    /* ===== load stations into dropdown ===== */
+    loadStations = async function() {
+        console.log('Loading stations for ward:', currentWard);
+        stationSelect.innerHTML = '<option value="">-- Choose polling station --</option>';
+        
+        for (let i = 0; i < currentStations.length; i++) {
+            const s = currentStations[i];
+            const stationId = currentWard + "_" + s.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, '');
+            const snap = await getDoc(doc(db, "pollingStations", stationId));
+            
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = s.name;
+            if (snap.exists()) {
+                opt.disabled = true;
+                opt.textContent += " ✔ (submitted)";
+            }
+            stationSelect.appendChild(opt);
+        }
+    }
+    
+    loadStations();
+
+    /* station changed */
+    stationSelect.addEventListener("change", () => {
+        if (stationSelect.value === "") {
+            registeredInput.value = "";
+            submitBtn.disabled = true;
+            return;
+        }
+        const idx = parseInt(stationSelect.value, 10);
+        registeredInput.value = currentStations[idx].voters;
+        submitBtn.disabled = false;
+    });
+
+    /* ===== RENDER CANDIDATES BASED ON CURRENT WARD ===== */
+    renderCandidates = function() {
+        console.log('Rendering candidates for ward:', currentWard, 'Candidates:', currentCandidates);
+        candidateDiv.innerHTML = '';
+        
+        if (!currentCandidates || currentCandidates.length === 0) {
+            console.error('No candidates found for current ward');
+            return;
+        }
+        
+        currentCandidates.forEach(c => {
+            let row = document.createElement("div");
+            row.className = "candidate-row";
+            
+            // Format party display if available (for Evurore)
+            let partyHtml = '';
+            if (c.partyCode && c.party) {
+                partyHtml = `<br><small style="font-weight:normal; color:#666; display:flex; align-items:center; gap:4px;">
+                    <span style="background:#e6f0ff; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:600; color:#0f3b6a;">${c.partyCode}</span>
+                    ${c.party}
+                </small>`;
+            } else if (c.party) {
+                partyHtml = `<br><small style="font-weight:normal; color:#666;">${c.party}</small>`;
+            }
+            
+            row.innerHTML = `
+                <div class="candidate-info">
+                    <img src="${c.photo}" alt="candidate" onerror="this.src='https://via.placeholder.com/42?text=${c.name.charAt(0)}'">
+                    <span>${c.name}${partyHtml}</span>
+                </div>
+                <input type="number" id="agent_${c.id}" placeholder="0" min="0">
+                <input type="number" id="iebc_${c.id}" placeholder="0" min="0">
+                <div id="diff_${c.id}" class="diff">0</div>
+            `;
+            candidateDiv.appendChild(row);
+
+            document.getElementById(`agent_${c.id}`).addEventListener("input", () => updateDiff(c.id));
+            document.getElementById(`iebc_${c.id}`).addEventListener("input", () => updateDiff(c.id));
+        });
+        
+        console.log('Rendered', currentCandidates.length, 'candidates');
+    }
+    
+    // Initial render
+    renderCandidates();
+
+    function updateDiff(id) {
+        let agent = Number(document.getElementById(`agent_${id}`).value) || 0;
+        let iebc = Number(document.getElementById(`iebc_${id}`).value) || 0;
+        let diff = agent - iebc;
+        let diffCell = document.getElementById(`diff_${id}`);
+        if (diffCell) {
+            diffCell.textContent = diff;
+            if (diff === 0) {
+                diffCell.className = "diff match";
+            } else {
+                diffCell.className = "diff mismatch";
+            }
+        }
+    }
+
+    clearForm = function() {
+        agentNameInput.value = "";
+        agentPhoneInput.value = "";
+        castedVotesInput.value = "";
+        rejectedVotesInput.value = "";
+        formSerialNumberInput.value = "";
+        stationSelect.value = "";
+        registeredInput.value = "";
+        submitBtn.disabled = true;
+        
+        // Clear all candidate inputs
+        if (currentCandidates) {
+            currentCandidates.forEach(c => {
+                const agentInput = document.getElementById(`agent_${c.id}`);
+                const iebcInput = document.getElementById(`iebc_${c.id}`);
+                const diffCell = document.getElementById(`diff_${c.id}`);
+                
+                if (agentInput) agentInput.value = "";
+                if (iebcInput) iebcInput.value = "";
+                if (diffCell) {
+                    diffCell.textContent = "0";
+                    diffCell.className = "diff";
+                }
+            });
+        }
+    }
+
+    /* submit final */
+    submitBtn.addEventListener("click", async () => {
+        if (stationSelect.value === "") return;
+
+        const idx = parseInt(stationSelect.value, 10);
+        const stationObj = currentStations[idx];
+        const stationId = currentWard + "_" + stationObj.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_]/g, '');
+
+        const check = await getDoc(doc(db, "pollingStations", stationId));
+        if (check.exists()) {
+            await showModal(`⛔ Results for ${stationObj.name} have already been submitted to the system.`, 'warning');
+            stationSelect.options[stationSelect.selectedIndex].disabled = true;
+            submitBtn.disabled = true;
+            return;
+        }
+
+        let agentVotes = {};
+        let iebcVotes = {};
+        let discrepancies = false;
+
+        currentCandidates.forEach(c => {
+            let a = Number(document.getElementById(`agent_${c.id}`).value) || 0;
+            let i = Number(document.getElementById(`iebc_${c.id}`).value) || 0;
+            agentVotes[c.name] = a;
+            iebcVotes[c.name] = i;
+            if (a !== i) discrepancies = true;
+        });
+
+        const payload = {
+            ward: currentWard === 'muminji' ? 'Muminji' : 'Evurore',
+            stationName: stationObj.name,
+            registeredVoters: Number(registeredInput.value),
+            agentName: agentNameInput.value.trim() || "(not provided)",
+            agentPhone: agentPhoneInput.value.trim() || "(not provided)",
+            castedVotes: Number(castedVotesInput.value) || 0,
+            rejectedVotes: Number(rejectedVotesInput.value) || 0,
+            formSerialNumber: formSerialNumberInput.value.trim() || "(not provided)", // New field added here
+            agentVotes,
+            iebcVotes,
+            discrepancyDetected: discrepancies,
+            timestamp: Date.now(),
+            totalWardVoters: currentTotalVoters,
+            submittedBy: auth.currentUser ? auth.currentUser.email : 'unknown',
+            submittedAt: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "pollingStations", stationId), payload);
+
+        const msgDiv = document.getElementById("message");
+        msgDiv.innerHTML = `<div class="success">✅ Results for <strong>${stationObj.name}</strong> saved successfully (ward total ${currentTotalVoters.toLocaleString()})</div>`;
+        msgDiv.scrollIntoView({ behavior: 'smooth' });
+        
+        await showModal(`Results for ${stationObj.name} have been successfully submitted to the system.`, 'success');
+
+        stationSelect.options[stationSelect.selectedIndex].disabled = true;
+        submitBtn.disabled = true;
+
+        clearForm();
+    });
+
+    // Close modal when clicking overlay
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.remove('active');
+        }
+    });
+}
+</script>
+</body>
+</html>
